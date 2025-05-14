@@ -11,17 +11,30 @@ const handler = app.getRequestHandler();
 // Track connected users
 const connectedUsers = new Map();
 
+// Create a global object to store our io instance
+global.io = null;
+global.connectedUsers = null;
+
 app.prepare().then(() => {
   const httpServer = createServer(handler);
   const io = new Server(httpServer);
   
+  // Store io instance globally so it can be accessed from API routes
+  global.io = io;
+  global.connectedUsers = connectedUsers;
+  
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
+    
+    // Extract userId from connection query if available
+    const userId = socket.handshake.query.userId || null;
+    console.log(`User ${socket.id} connected with userId: ${userId}`);
     
     // Add user to connected users map
     connectedUsers.set(socket.id, {
       id: socket.id,
-      name: `User ${connectedUsers.size + 1}` // Simple naming convention
+      name: `User ${connectedUsers.size + 1}`,
+      userId // Store the external userId
     });
     
     // Broadcast updated user list to everyone

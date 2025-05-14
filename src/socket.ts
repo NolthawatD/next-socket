@@ -2,14 +2,6 @@
 
 import { io } from "socket.io-client";
 
-// Only initialize socket on the client side
-let socket: any;
-
-// This will only execute on the client
-if (typeof window !== "undefined") {
-  socket = io();
-}
-
 // Define types
 export interface PrivateMessage {
   recipient: string;
@@ -19,6 +11,26 @@ export interface PrivateMessage {
 export interface ReceivedMessage {
   from: string;
   message: string;
+}
+
+// Only initialize socket on the client side
+let socket: any;
+
+// Function to initialize socket with userId
+export const initSocket = (userId?: string) => {
+  if (typeof window !== "undefined" && !socket) {
+    const query = userId ? { userId } : {};
+    socket = io({
+      query
+    });
+    return socket;
+  }
+  return socket;
+};
+
+// Initialize with no userId by default (for backward compatibility)
+if (typeof window !== "undefined") {
+  socket = io();
 }
 
 // Add a helper function to send messages
